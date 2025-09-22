@@ -56,5 +56,8 @@ else
   action="install"
 fi
 
+# for debugging
+sleep 3600
+
 helm "${action}" "${release_name}" "${ROOT_DIR}/charts/openvsx" -f "${values_file}" --set image.tag="${image_tag}" --namespace "${namespace}"
   
