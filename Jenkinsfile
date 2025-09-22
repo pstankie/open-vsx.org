@@ -80,9 +80,6 @@ pipeline {
     }
 
     stage('Deploy staging') {
-      when {
-        branch 'main'
-      }
       steps {
         container('kubectl') {
           withKubeConfig([credentialsId: 'ci-bot-okd-c1-token', serverUrl: 'https://api.okd-c1.eclipse.org:6443']) {
