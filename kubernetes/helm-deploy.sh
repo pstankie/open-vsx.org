@@ -56,6 +56,9 @@ else
   action="install"
 fi
 
+set 
+helm list -n "${namespace}"
+
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add grafana https://grafana.github.io/helm-charts
 helm dependency build "${ROOT_DIR}/charts/openvsx"
