@@ -80,8 +80,8 @@ pipeline {
     }
 
     stage('Deploy staging') {
-      when {
-        branch 'main'
+      expression {
+        env.BRANCH_NAME == 'main' || (env.GIT_BRANCH ?: '').endsWith('/main')
       }
       steps {
         container('kubectl') {
