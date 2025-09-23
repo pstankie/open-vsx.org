@@ -56,8 +56,8 @@ else
   action="install"
 fi
 
-# for debugging
-sleep 300
-
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add grafana https://grafana.github.io/helm-charts
+helm dependency build "${ROOT_DIR}/charts/openvsx"
 helm "${action}" "${release_name}" "${ROOT_DIR}/charts/openvsx" -f "${values_file}" --set image.tag="${image_tag}" --namespace "${namespace}"
   
