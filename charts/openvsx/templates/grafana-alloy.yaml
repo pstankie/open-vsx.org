@@ -57,20 +57,43 @@ data:
 
     {{- end }}
     prometheus.remote_write "default" {
+      external_labels = {
+        cluster  = "{{ .Values.environment }}-{{ .Values.platform }}",
+        platform = "{{ .Values.platform }}",
+      }
+
       endpoint {
         name = "hosted-prometheus"
         url = sys.env("PROMETHEUS_URL")
 
-        tls_config {
-          insecure_skip_verify = true
-        }
-
-        /*
         basic_auth {
           username = sys.env("PROMETHEUS_USERNAME")
           password = sys.env("PROMETHEUS_PASSWORD")
         }
-        */
+      }
+    }
+
+    loki.source.api "default" {
+      http {
+        listen_address = "0.0.0.0"
+        listen_port    = 3100
+      }
+      forward_to = [loki.write.default.receiver]
+    }
+
+    loki.write "default" {
+      endpoint {
+        url = sys.env("LOKI_URL")
+
+        basic_auth {
+          username = sys.env("LOKI_USERNAME")
+          password = sys.env("LOKI_PASSWORD")
+        }
+      }
+
+      external_labels = {
+        cluster  = "{{ .Values.environment }}-{{ .Values.platform }}",
+        platform = "{{ .Values.platform }}",
       }
     }
 
@@ -86,6 +109,22 @@ data:
       limit = "400MiB"
       spike_limit = "80MiB"
       output {
+        traces = [otelcol.processor.attributes.add_external_labels.input]
+      }
+    }
+
+    otelcol.processor.attributes "add_external_labels" {
+      action {
+        key    = "cluster"
+        value  = "{{ .Values.environment }}-{{ .Values.platform }}"
+        action = "upsert"
+      }
+      action {
+        key    = "platform"
+        value  = "{{ .Values.platform }}"
+        action = "upsert"
+      }
+      output {
         traces = [otelcol.processor.batch.default.input]
       }
     }
@@ -96,20 +135,14 @@ data:
       }
     }
 
-    /*
     otelcol.auth.basic "tempo_auth" {
       username = sys.env("TEMPO_USERNAME")
       password = sys.env("TEMPO_PASSWORD")
     }
-    */
 
     otelcol.exporter.otlp "tempo" {
       client {
         endpoint = sys.env("TEMPO_URL")
-        // auth = otelcol.auth.basic.tempo_auth.handler
-        tls {
-            insecure_skip_verify = true
-            insecure = true
-        }
+        auth = otelcol.auth.basic.tempo_auth.handler
       }
     }

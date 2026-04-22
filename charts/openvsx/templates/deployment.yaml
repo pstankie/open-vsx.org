@@ -9,9 +9,7 @@ metadata:
 spec:
   progressDeadlineSeconds: 3600
   revisionHistoryLimit: 1
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       app: {{ .Values.name }}
@@ -54,6 +52,8 @@ spec:
           value: {{ .Values.environment }}
         - name: JVM_ARGS
           value: {{ .Values.website.jvmArgs }}
+        - name: LOKI_URL
+          value: http://{{ .Values.alloy.fullnameOverride }}.{{ .Values.namespace }}:3100/loki/api/v1/push
         volumeMounts:
         - name: deployment-configuration
           mountPath: /run/secrets/open-vsx.org/deployment
